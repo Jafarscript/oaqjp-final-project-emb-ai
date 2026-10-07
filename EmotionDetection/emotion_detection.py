@@ -4,6 +4,7 @@ import requests  # Import the requests library to handle HTTP requests
 def emotion_detector(text_to_analyse):
     """
     Sends text to the Watson Emotion Predict service and formats the output.
+    Includes error handling for status code 400 (blank entries).
     """
     url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
     myobj = { "raw_document": { "text": text_to_analyse } }
@@ -11,11 +12,21 @@ def emotion_detector(text_to_analyse):
     
     response = requests.post(url, json=myobj, headers=header)
     
+    # Check the status code from the server response
+    if response.status_code == 400:
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
+    
     # 1. Parse the JSON text string into a Python dictionary
     formatted_response = json.loads(response.text)
     
     # 2. Extract the main emotion dictionary nested deep inside the response structure
-    # Path: emotionPredictions -> first item [0] -> emotion
     emotions = formatted_response['emotionPredictions'][0]['emotion']
     
     # 3. Extract the individual scores
